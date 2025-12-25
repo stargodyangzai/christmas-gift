@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圣诞快乐 - 互传贺卡</title>
+    <title>Merry Christmas - 互动贺卡</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Zhi+Mang+Xing&display=swap');
 
         body {
             margin: 0;
             overflow: hidden;
+            background: #000;
             background: radial-gradient(circle at 50% 50%, #1a153a 0%, #12041d 40%, #000000 100%);
             font-family: 'Cinzel', serif;
             touch-action: none;
@@ -21,7 +22,7 @@
         /* 礼盒 */
         .gift-container {
             position: absolute;
-            bottom: 12%; left: 50%;
+            bottom: 10%; left: 50%;
             transform: translateX(-50%);
             z-index: 20;
             cursor: pointer;
@@ -34,20 +35,20 @@
         }
         .gift-container.hidden { display: none; }
         .gift-icon { font-size: 4.5rem; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)); }
-        .gift-text { color: #d4af37; font-size: 0.9rem; letter-spacing: 2px; margin-top: 5px; font-weight: bold; }
+        .gift-text { color: #d4af37; font-size: 0.9rem; letter-spacing: 2px; margin-top: 5px; font-weight: bold; font-family: sans-serif; }
 
         /* 贺卡弹窗容器 */
         .card-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 100;
-            display: none; /* 默认隐藏 */
+            display: none;
             justify-content: center;
             align-items: center;
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.6s;
         }
         .card-overlay.active { display: flex; opacity: 1; }
         
@@ -59,17 +60,18 @@
             border-radius: 20px;
             padding: 30px 20px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+            box-shadow: 0 0 50px rgba(18, 4, 29, 0.8);
         }
 
-        /* 两个模式的内容容器，初始都设为隐藏 */
+        /* 模式切换容器 */
         #viewMode, #editMode { display: none; }
 
-        /* 查看模式 */
+        /* 查看模式文案 */
         #viewMode h2 { font-family: 'Great Vibes', cursive; color: #d4af37; font-size: 2.8rem; margin: 0; }
-        #viewMode p { color: #eee; line-height: 1.8; font-size: 1.1rem; margin: 20px 0; font-family: sans-serif; white-space: pre-wrap; }
+        #viewMode p { color: #eee; line-height: 1.8; font-size: 1.15rem; margin: 20px 0; font-family: sans-serif; white-space: pre-wrap; }
+        .signature-view { color: #d4af37; font-weight: bold; font-size: 1.1rem; margin-bottom: 20px; }
         
-        /* 编辑模式 */
+        /* 编辑模式表单 */
         #editMode { flex-direction: column; gap: 12px; text-align: left; }
         #editMode h3 { color: #d4af37; text-align: center; margin: 0 0 10px 0; font-family: 'Cinzel'; }
         .input-group label { color: #888; font-size: 0.75rem; display: block; margin-bottom: 4px; }
@@ -82,12 +84,11 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 1rem;
-            outline: none;
         }
-        textarea { height: 120px; resize: none; }
+        textarea { height: 100px; resize: none; }
 
         /* 按钮 */
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .primary-btn { background: #d4af37; color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; font-family: 'Cinzel'; }
         .secondary-btn { background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px; border-radius: 50px; cursor: pointer; font-family: 'Cinzel'; font-size: 0.8rem; }
 
@@ -111,20 +112,19 @@
 
     <div class="gift-container" id="giftBox">
         <div class="gift-icon">🎁</div>
-        <div class="gift-text" id="boxText">打开惊喜</div>
+        <div class="gift-text" id="boxHint">打开惊喜</div>
     </div>
 
     <div class="card-overlay" id="cardOverlay">
         <div class="card">
-            
             <!-- 模式 1: 查看他人的祝福 -->
             <div id="viewMode">
                 <h2 id="viewTo">Dear Friend</h2>
                 <p id="viewMsg"></p>
-                <div id="viewFrom" style="color:#d4af37; font-weight:bold; margin-bottom:20px;">—— Your Friend</div>
+                <div id="viewFrom" class="signature-view">—— From Your Friend</div>
                 <div class="btn-group">
-                    <button class="primary-btn" onclick="forceToEdit()">我也要制作贺卡</button>
-                    <button class="secondary-btn" onclick="closePopup()">关闭</button>
+                    <button class="primary-btn" onclick="switchToEdit()">我也要制作贺卡</button>
+                    <button class="secondary-btn" onclick="closeAll()">关闭</button>
                 </div>
             </div>
 
@@ -132,23 +132,22 @@
             <div id="editMode">
                 <h3>制作圣诞贺卡</h3>
                 <div class="input-group">
-                    <label>致（收件人）：</label>
-                    <input type="text" id="inTo" placeholder="如：亲爱的XXX">
+                    <label>致（对方名字）：</label>
+                    <input type="text" id="inTo" placeholder="例：涵涵">
                 </div>
                 <div class="input-group">
                     <label>祝福语：</label>
-                    <textarea id="inMsg" placeholder="在这里写下祝福内容...">在这繁华闪烁的时刻，愿所有的美好如约而至。祝你圣诞快乐！</textarea>
+                    <textarea id="inMsg" placeholder="在这里写下祝福...">在这个繁华闪烁的时刻，愿所有的美好如约而至。祝你圣诞快乐！</textarea>
                 </div>
                 <div class="input-group">
-                    <label>署名（发件人）：</label>
-                    <input type="text" id="inFrom" placeholder="如：爱你的XXX">
+                    <label>署名（你的名字）：</label>
+                    <input type="text" id="inFrom" placeholder="例：小鲤鱼">
                 </div>
                 <div class="btn-group">
                     <button class="primary-btn" onclick="copyShareLink()">生成并复制分享链接</button>
-                    <button class="secondary-btn" onclick="closePopup()">返回圣诞森林</button>
+                    <button class="secondary-btn" onclick="closeAll()">返回森林</button>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -156,63 +155,48 @@
 
     <script>
         // --- 1. 数据解析逻辑 ---
-        let HAS_DATA = false;
-        let cardData = null;
+        let receivedData = null;
 
-        function decodeChinese(str) {
+        function safeB64Encode(obj) {
+            return btoa(encodeURIComponent(JSON.stringify(obj)).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+        }
+        function safeB64Decode(str) {
             try {
-                return JSON.parse(decodeURIComponent(escape(atob(str))));
-            } catch (e) {
-                try {
-                    // 备用方案，处理更现代的编码
-                    return JSON.parse(decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-                } catch (e2) { return null; }
-            }
+                return JSON.parse(decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+            } catch (e) { return null; }
         }
 
-        function encodeChinese(obj) {
-            return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
-        }
+        const params = new URLSearchParams(window.location.search);
+        const dParam = params.get('d');
+        if (dParam) { receivedData = safeB64Decode(dParam); }
 
-        // 初始化判断
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataRaw = urlParams.get('d');
-        if (dataRaw) {
-            cardData = decodeChinese(dataRaw);
-            if (cardData) HAS_DATA = true;
-        }
-
-        // --- 2. 交互逻辑 ---
+        // --- 2. 界面逻辑 ---
         const giftBox = document.getElementById('giftBox');
         const cardOverlay = document.getElementById('cardOverlay');
-        const viewDiv = document.getElementById('viewMode');
-        const editDiv = document.getElementById('editMode');
+        const audio = document.getElementById('audioPlayer');
 
         giftBox.onclick = () => {
-            document.getElementById('audioPlayer').play().catch(()=>{});
+            audio.play().catch(()=>{});
             giftBox.classList.add('hidden');
             cardOverlay.classList.add('active');
             
-            if (HAS_DATA) {
-                // 收到消息模式：显示查看，隐藏编辑
-                document.getElementById('viewTo').innerText = "Dear " + cardData.to;
-                document.getElementById('viewMsg').innerText = cardData.msg;
-                document.getElementById('viewFrom').innerText = "—— " + cardData.from;
-                viewDiv.style.display = 'block';
-                editDiv.style.display = 'none';
+            if (receivedData) {
+                document.getElementById('viewTo').innerText = 'Dear ' + receivedData.to;
+                document.getElementById('viewMsg').innerText = receivedData.msg;
+                document.getElementById('viewFrom').innerText = '—— ' + receivedData.from;
+                document.getElementById('viewMode').style.display = 'block';
+                document.getElementById('editMode').style.display = 'none';
             } else {
-                // 初始模式：显示编辑，隐藏查看
-                viewDiv.style.display = 'none';
-                editDiv.style.display = 'flex';
+                switchToEdit();
             }
         };
 
-        function forceToEdit() {
-            viewDiv.style.display = 'none';
-            editDiv.style.display = 'flex';
+        function switchToEdit() {
+            document.getElementById('viewMode').style.display = 'none';
+            document.getElementById('editMode').style.display = 'flex';
         }
 
-        function closePopup() {
+        function closeAll() {
             cardOverlay.classList.remove('active');
             giftBox.classList.remove('hidden');
         }
@@ -221,122 +205,156 @@
             const data = {
                 to: document.getElementById('inTo').value || '朋友',
                 msg: document.getElementById('inMsg').value || '圣诞快乐！',
-                from: document.getElementById('inFrom').value || '匿名人'
+                from: document.getElementById('inFrom').value || '匿名'
             };
-            const encoded = encodeChinese(data);
-            const link = window.location.origin + window.location.pathname + '?d=' + encoded;
-            
-            const el = document.createElement('textarea');
-            el.value = link;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-
+            const link = window.location.origin + window.location.pathname + '?d=' + safeB64Encode(data);
+            const dummy = document.createElement("input");
+            document.body.appendChild(dummy);
+            dummy.value = link;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
             const t = document.getElementById('toast');
             t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
         }
 
-        // --- 3. 圣诞树渲染 (圆锥形) ---
+        // --- 3. 圣诞树引擎 (完全照搬您提供的渲染逻辑) ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        let width, height, treeParticles = [], snowParticles = [], stars = [], trails = [], angleY = 0, time = 0;
+        let width, height, treeParticles = [], snowParticles = [], stars = [], trails = [], fireworks = [], angleY = 0, time = 0, isRotating = true;
         const isMobile = window.innerWidth < 768;
+
+        function init() {
+            resize(); createStars(); createSnow(); createTree(); animate();
+        }
 
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            initScene();
         }
 
-        function initScene() {
-            treeParticles = []; stars = []; snowParticles = [];
-            for (let i = 0; i < 80; i++) stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2, blink: Math.random() * 10 });
-            for (let i = 0; i < 60; i++) snowParticles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2 + 1, speed: Math.random() * 0.8 + 0.4 });
-            
-            const treeHeight = height * 0.65;
-            const maxRadius = isMobile ? width * 0.45 : width * 0.22;
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 80; i++) {
+                stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2, blink: Math.random() * Math.PI * 2 });
+            }
+        }
 
-            // 圆锥形算法: r = maxRadius * hPct
-            const count = isMobile ? 1200 : 2000;
+        function createTree() {
+            treeParticles = [];
+            const treeHeight = height * 0.6;
+            const maxRadius = isMobile ? width * 0.48 : width * 0.22;
+            const count = isMobile ? 1000 : 1800;
+
             for (let i = 0; i < count; i++) {
                 const hPct = Math.random(); 
                 const y = (hPct - 0.5) * treeHeight;
-                const r = maxRadius * hPct; // 线性增长=圆锥
+                const r = maxRadius * Math.pow(hPct, 1.3); // 您最满意的宽体形态
                 const angle = Math.random() * Math.PI * 2;
+                const x = Math.cos(angle) * r;
+                const z = Math.sin(angle) * r;
                 let hue, sat, lit, size, blink = false;
                 const rand = Math.random();
                 if (rand > 0.92) { hue = 0; sat = 90; lit = 50; size = 4; blink = true; }
                 else if (rand > 0.84) { hue = 45; sat = 100; lit = 60; size = 3.5; blink = true; }
-                else { hue = 140 + Math.random() * 30; sat = 50; lit = 30; size = 2.2; }
-                treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue, sat, lit, size, blink, offset: Math.random() * 10 });
+                else { hue = 140 + Math.random() * 30; sat = 50; lit = 20 + Math.random() * 15; size = 2.2; }
+                treeParticles.push({ x, y, z, hue, sat, lit, size, blink, offset: Math.random() * 10 });
             }
-            // 丝带
-            for (let i = 0; i < 300; i++) {
-                const hPct = i / 300;
+
+            for (let i = 0; i < 280; i++) {
+                const hPct = i / 280;
                 const y = (hPct - 0.5) * treeHeight;
-                const r = (maxRadius * hPct) + 6;
+                const r = maxRadius * Math.pow(hPct, 1.3) + 6;
                 const angle = hPct * Math.PI * 2 * 6;
-                treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue: 45, sat: 100, lit: 75, size: 2.8, blink: true, offset: i });
+                treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue: 45, sat: 100, lit: 70, size: 2.8, blink: true, offset: i });
             }
-            // 树干
+
+            const trunkHeight = treeHeight * 0.15;
+            const trunkRadius = maxRadius * 0.12;
             for (let i = 0; i < 150; i++) {
-                const hp = Math.random();
-                const y = (0.5 * treeHeight) + (hp * treeHeight * 0.15);
+                const hPctTrunk = Math.random();
+                const y = (0.5 * treeHeight) + (hPctTrunk * trunkHeight);
+                const r = trunkRadius;
                 const angle = Math.random() * Math.PI * 2;
-                treeParticles.push({ x: Math.cos(angle) * maxRadius * 0.12, y, z: Math.sin(angle) * maxRadius * 0.12, hue: 25, sat: 40, lit: 15, size: 2 });
+                treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue: 25, sat: 40, lit: 10 + Math.random() * 10, size: 2, blink: false });
             }
-            // 星星
+
             treeParticles.push({ x: 0, y: -0.5 * treeHeight - 15, z: 0, type: 'star', size: 18 });
         }
 
-        class Trail {
-            constructor(x, y) { this.x = x; this.y = y; this.alpha = 1.0; this.size = Math.random() * 3 + 2; }
+        function createSnow() {
+            snowParticles = [];
+            for (let i = 0; i < 60; i++) {
+                snowParticles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2 + 1, speed: Math.random() * 0.8 + 0.4 });
+            }
+        }
+
+        class MagicTrail {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.alpha = 1.0; this.size = Math.random() * 3 + 2;
+                this.color = `hsla(${Math.random() * 20 + 40}, 100%, 70%, `; 
+            }
             draw() {
-                ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
+                ctx.fillStyle = this.color + this.alpha + ")";
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
                 this.alpha -= 0.03; this.size *= 0.95;
             }
         }
 
+        function createFireworks(x, y) {
+            for (let i = 0; i < 60; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 3;
+                fireworks.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, col: `hsl(${Math.random() * 360}, 100%, 70%)` });
+            }
+        }
+
         function animate() {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height);
-            time++; angleY += 0.005;
-            stars.forEach(s => { const b = Math.abs(Math.sin(time * 0.02 + s.blink)); ctx.fillStyle = `rgba(255,255,255,${b * 0.4})`; ctx.fillRect(s.x, s.y, s.size, s.size); });
-            snowParticles.forEach(s => { s.y += s.speed; if (s.y > height) s.y = -10; ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill(); });
+            time++; if (isRotating) angleY += 0.005; 
+            stars.forEach(s => { const b = Math.abs(Math.sin(time * 0.02 + s.blink)); ctx.fillStyle = `rgba(255, 255, 255, ${b * 0.5})`; ctx.fillRect(s.x, s.y, s.size, s.size); });
+            snowParticles.forEach(s => { s.y += s.speed; if (s.y > height) s.y = -10; ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill(); });
+            
             const cosA = Math.cos(angleY), sinA = Math.sin(angleY);
-            treeParticles.forEach(p => p.dz = p.z * cosA + p.x * sinA);
-            treeParticles.sort((a, b) => a.dz - b.dz);
+            treeParticles.forEach(p => { p.drawX = p.x * cosA - p.z * sinA; p.drawZ = p.z * cosA + p.x * sinA; });
+            treeParticles.sort((a, b) => a.drawZ - b.drawZ);
+            const fov = 650, camZ = 550;
+
             treeParticles.forEach(p => {
-                const fov = 650, camZ = 550, scale = fov / (fov + p.dz + camZ), x2d = (p.x * cosA - p.z * sinA) * scale + width / 2, y2d = p.y * scale + height / 2;
+                const scale = fov / (fov + p.drawZ + camZ), screenX = (p.drawX * scale) + width / 2, screenY = (p.y * scale) + height / 2;
                 if (p.type === 'star') {
-                    const glow = Math.sin(time * 0.1) * 10 + 20;
-                    ctx.fillStyle = `rgba(255, 215, 0, ${Math.sin(time*0.1)*0.3+0.4})`;
-                    ctx.beginPath(); ctx.arc(x2d, y2d, glow * scale, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(x2d, y2d, p.size * scale, 0, Math.PI*2); ctx.fill();
+                    const glowSize = Math.sin(time * 0.1) * 10 + 20, starAlpha = Math.sin(time * 0.1) * 0.3 + 0.4;
+                    const grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, glowSize * scale);
+                    grad.addColorStop(0, `rgba(255, 215, 0, ${starAlpha})`); grad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(screenX, screenY, glowSize * scale, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#FFD700'; ctx.beginPath();
+                    for(let i=0; i<5; i++){ ctx.lineTo(screenX + Math.cos((18+i*72)/180*Math.PI)*p.size*scale, screenY - Math.sin((18+i*72)/180*Math.PI)*p.size*scale); ctx.lineTo(screenX + Math.cos((54+i*72)/180*Math.PI)*p.size/2.5*scale, screenY - Math.sin((54+i*72)/180*Math.PI)*p.size/2.5*scale); }
+                    ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(screenX, screenY, 4 * scale, 0, Math.PI*2); ctx.fill();
                 } else {
                     let lit = p.lit; if (p.blink) lit += Math.sin(time * 0.1 + p.offset) * 15;
-                    ctx.fillStyle = `hsla(${p.hue}, ${p.sat}%, ${lit}%, 0.85)`; ctx.beginPath(); ctx.arc(x2d, y2d, p.size * scale, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = `hsla(${p.hue}, ${p.sat}%, ${lit}%, 0.85)`; ctx.beginPath(); ctx.arc(screenX, screenY, p.size * scale, 0, Math.PI * 2); ctx.fill();
                 }
             });
+
+            fireworks.forEach((f, i) => { f.x += f.vx; f.y += f.vy; f.vy += 0.15; f.life -= 0.02; ctx.fillStyle = f.col; ctx.globalAlpha = f.life; ctx.beginPath(); ctx.arc(f.x, f.y, 2.5, 0, Math.PI*2); ctx.fill(); if (f.life <= 0) fireworks.splice(i, 1); });
+            ctx.globalAlpha = 1;
             trails.forEach((t, i) => { t.draw(); if (t.alpha <= 0) trails.splice(i, 1); });
             requestAnimationFrame(animate);
         }
 
-        const addTrail = (e) => {
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            trails.push(new Trail(x, y));
-            angleY += 0.005;
-        };
-        canvas.addEventListener('touchstart', addTrail);
-        canvas.addEventListener('touchmove', addTrail);
-        canvas.addEventListener('mousedown', () => canvas.addEventListener('mousemove', addTrail));
-        window.addEventListener('mouseup', () => canvas.removeEventListener('mousemove', addTrail));
+        let isDown = false;
+        function hStart(x, y) { isDown = true; trails.push(new MagicTrail(x, y)); }
+        function hMove(x, y) { if (isDown) { trails.push(new MagicTrail(x, y)); angleY += 0.015; } }
+        canvas.addEventListener('touchstart', e => hStart(e.touches[0].clientX, e.touches[0].clientY));
+        canvas.addEventListener('touchmove', e => hMove(e.touches[0].clientX, e.touches[0].clientY));
+        canvas.addEventListener('touchend', () => isDown = false);
+        canvas.addEventListener('mousedown', e => hStart(e.clientX, e.clientY));
+        window.addEventListener('mousemove', e => hMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', () => isDown = false);
 
+        init();
         window.onresize = resize;
-        resize(); animate();
     </script>
 </body>
 </html>
