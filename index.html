@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圣诞快乐 - 互传贺卡</title>
+    <title>圣诞快乐 - 互动贺卡</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&display=swap');
 
@@ -19,10 +19,10 @@
 
         canvas { display: block; width: 100vw; height: 100vh; }
 
-        /* 礼盒 */
+        /* 礼盒交互 */
         .gift-container {
             position: absolute;
-            bottom: 12%; left: 50%;
+            bottom: 10%; left: 50%;
             transform: translateX(-50%);
             z-index: 20;
             cursor: pointer;
@@ -60,36 +60,35 @@
             border-radius: 20px;
             padding: 30px 20px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(18, 4, 29, 0.8);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
         }
 
-        /* 查看模式 */
-        #displaySection h2 { font-family: 'Great Vibes', cursive; color: #d4af37; font-size: 2.8rem; margin: 0; }
-        #displaySection p { color: #eee; line-height: 1.8; font-size: 1.1rem; margin: 20px 0; font-family: sans-serif; white-space: pre-wrap; }
+        /* 查看模式文案 */
+        #viewMode h2 { font-family: 'Great Vibes', cursive; color: #d4af37; font-size: 2.8rem; margin: 0; }
+        #viewMode p { color: #eee; line-height: 1.8; font-size: 1.1rem; margin: 20px 0; font-family: sans-serif; white-space: pre-wrap; }
         
-        /* 编辑模式 */
-        #editSection { display: none; flex-direction: column; gap: 12px; }
-        #editSection h3 { color: #d4af37; margin: 0 0 10px 0; font-size: 1.2rem; }
-        .input-group { text-align: left; }
-        label { color: #888; font-size: 0.7rem; margin-left: 5px; }
+        /* 编辑模式表单 */
+        #editMode { flex-direction: column; gap: 12px; text-align: left; display: none; }
+        #editMode h3 { color: #d4af37; text-align: center; margin: 0 0 10px 0; font-family: 'Cinzel'; }
+        .input-group label { color: #888; font-size: 0.75rem; display: block; margin-bottom: 4px; }
         input, textarea {
             width: 100%;
             background: #222;
             border: 1px solid #444;
             color: #fff;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 1rem;
-            margin-top: 4px;
         }
         textarea { height: 100px; resize: none; }
 
-        /* 按钮样式 */
+        /* 按钮 */
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .primary-btn { background: #d4af37; color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; font-family: 'Cinzel'; }
+        .primary-btn { background: #d4af37; color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; font-family: 'Cinzel'; width: 100%; text-transform: uppercase; }
         .secondary-btn { background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px; border-radius: 50px; cursor: pointer; font-family: 'Cinzel'; font-size: 0.8rem; }
 
+        /* 复制提示 */
         #toast {
             position: fixed;
             top: 20px; left: 50%;
@@ -102,48 +101,50 @@
 </head>
 <body>
 
-    <audio id="bgm" loop preload="auto">
+    <!-- 背景音乐：确保同目录下有 bgm.mp3 -->
+    <audio id="audioPlayer" loop>
         <source src="bgm.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="toast">链接已复制，快发给好友吧！</div>
+    <div id="toast">链接已复制，去发给TA吧！</div>
 
     <div class="gift-container" id="giftBox">
         <div class="gift-icon">🎁</div>
-        <div class="gift-text" id="boxHint">打开惊喜</div>
+        <div class="gift-text" id="boxText">打开惊喜</div>
     </div>
 
     <div class="card-overlay" id="cardOverlay">
         <div class="card">
-            <!-- 模式 1: 查看 -->
-            <div id="displaySection">
-                <h2 id="showTo">Dear Friend</h2>
-                <p id="showMsg">祝你圣诞快乐...</p>
-                <div id="showFrom" style="color:#d4af37; font-weight:bold; margin-bottom:20px;">—— From Your Friend</div>
+            <!-- 模式 1: 查看他人的祝福 -->
+            <div id="viewMode">
+                <h2 id="viewTo">Dear Friend</h2>
+                <p id="viewMsg">圣诞快乐！</p>
+                <div id="viewFrom" style="color:#d4af37; font-weight:bold; margin-bottom:20px; font-size:1.1rem;">—— Your Friend</div>
                 <div class="btn-group">
-                    <button class="primary-btn" onclick="showEdit()">我也要写贺卡</button>
-                    <button class="secondary-btn" id="closeCard">关 闭</button>
+                    <button class="primary-btn" onclick="switchToEdit()">我也要制作贺卡</button>
+                    <button class="secondary-btn" id="closeBtn">关闭</button>
                 </div>
             </div>
 
-            <!-- 模式 2: 编辑 -->
-            <div id="editSection">
-                <h3>制作你的圣诞贺卡</h3>
+            <!-- 模式 2: 编辑模式 -->
+            <div id="editMode">
+                <h3>制作圣诞贺卡</h3>
                 <div class="input-group">
                     <label>致（收件人）：</label>
-                    <input type="text" id="inputTo" placeholder="例：涵涵">
+                    <input type="text" id="inTo" placeholder="填写对方的名字">
                 </div>
                 <div class="input-group">
                     <label>祝福语：</label>
-                    <textarea id="inputMsg" placeholder="例：愿你在这个圣诞节...">祝你圣诞快乐，万事如意！</textarea>
+                    <textarea id="inMsg" placeholder="写下你的祝福...">在这个繁华闪烁的时刻，愿所有的美好如约而至。祝你圣诞快乐！</textarea>
                 </div>
                 <div class="input-group">
                     <label>署名（发件人）：</label>
-                    <input type="text" id="inputFrom" placeholder="例：小鲤鱼">
+                    <input type="text" id="inFrom" placeholder="你的名字">
                 </div>
                 <div class="btn-group">
-                    <button class="primary-btn" onclick="createLink()">生成并复制分享链接</button>
-                    <button class="secondary-btn" onclick="hideEdit()">返回查看</button>
+                    <button class="primary-btn" onclick="copyShareLink()">生成并复制分享链接</button>
+                    <button class="secondary-btn" id="btnBackView" style="display:none;" onclick="switchToView()">返回查看</button>
+                    <button class="secondary-btn" onclick="closeAll()">返回森林</button>
                 </div>
             </div>
         </div>
@@ -152,134 +153,189 @@
     <canvas id="canvas"></canvas>
 
     <script>
-        // --- URL 数据加解密 ---
-        function encodeData(obj) {
-            // 解决 Base64 中文乱码的通用方案
-            return btoa(encodeURIComponent(JSON.stringify(obj)).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-                return String.fromCharCode('0x' + p1);
-            }));
+        // --- 1. 数据加解密逻辑 ---
+        let receivedData = null;
+
+        function safeB64Encode(obj) {
+            return btoa(encodeURIComponent(JSON.stringify(obj)).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
         }
 
-        function decodeData(str) {
+        function safeB64Decode(str) {
             try {
-                return JSON.parse(decodeURIComponent(Array.prototype.map.call(atob(str), (c) => {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join('')));
+                return JSON.parse(decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
             } catch (e) { return null; }
         }
 
-        // --- 逻辑控制 ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataKey = urlParams.get('d');
-        const cardInfo = dataKey ? decodeData(dataKey) : null;
+        const params = new URLSearchParams(window.location.search);
+        const dataStr = params.get('d');
+        if (dataStr) { receivedData = safeB64Decode(dataStr); }
 
-        function showEdit() {
-            document.getElementById('displaySection').style.display = 'none';
-            document.getElementById('editSection').style.display = 'flex';
-        }
-
-        function hideEdit() {
-            if (!cardInfo) {
-                document.getElementById('cardOverlay').classList.remove('active');
-                giftBox.classList.remove('hidden');
-                return;
-            }
-            document.getElementById('displaySection').style.display = 'block';
-            document.getElementById('editSection').style.display = 'none';
-        }
-
-        function createLink() {
-            const to = document.getElementById('inputTo').value || '朋友';
-            const msg = document.getElementById('inputMsg').value || '圣诞快乐！';
-            const from = document.getElementById('inputFrom').value || '神秘人';
-
-            const encoded = encodeData({ to, msg, from });
-            const shareUrl = window.location.origin + window.location.pathname + '?d=' + encoded;
-
-            // 复制链接
-            const textArea = document.createElement("textarea");
-            textArea.value = shareUrl;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                const t = document.getElementById('toast');
-                t.style.display = 'block';
-                setTimeout(() => t.style.display = 'none', 3000);
-            } catch (err) {
-                alert("复制失败，请手动复制浏览器地址栏链接");
-            }
-            document.body.removeChild(textArea);
-        }
-
-        // 礼盒点击逻辑
+        // --- 2. 界面控制 ---
         const giftBox = document.getElementById('giftBox');
-        giftBox.onclick = () => {
-            document.getElementById('bgm').play().catch(()=>{});
-            giftBox.classList.add('hidden');
-            document.getElementById('cardOverlay').classList.add('active');
+        const cardOverlay = document.getElementById('cardOverlay');
+        const audio = document.getElementById('audioPlayer');
+
+        function switchToEdit() {
+            document.getElementById('viewMode').style.display = 'none';
+            document.getElementById('editMode').style.display = 'flex';
+            if(receivedData) document.getElementById('btnBackView').style.display = 'block';
+        }
+
+        function switchToView() {
+            document.getElementById('viewMode').style.display = 'block';
+            document.getElementById('editMode').style.display = 'none';
+        }
+
+        function closeAll() {
+            cardOverlay.classList.remove('active');
+            giftBox.classList.remove('hidden');
+        }
+
+        function copyShareLink() {
+            const data = {
+                to: document.getElementById('inTo').value || '朋友',
+                msg: document.getElementById('inMsg').value || '圣诞快乐！',
+                from: document.getElementById('inFrom').value || '匿名'
+            };
+            const link = window.location.origin + window.location.pathname + '?d=' + safeB64Encode(data);
             
-            if (cardInfo) {
-                // 如果有收到数据，显示数据
-                document.getElementById('showTo').innerText = 'Dear ' + cardInfo.to;
-                document.getElementById('showMsg').innerText = cardInfo.msg;
-                document.getElementById('showFrom').innerText = '—— ' + cardInfo.from;
-                document.getElementById('displaySection').style.display = 'block';
-                document.getElementById('editSection').style.display = 'none';
+            const dummy = document.createElement("input");
+            document.body.appendChild(dummy);
+            dummy.value = link;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            const t = document.getElementById('toast');
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        giftBox.onclick = () => {
+            audio.play().catch(()=>{});
+            giftBox.classList.add('hidden');
+            cardOverlay.classList.add('active');
+            
+            if (receivedData) {
+                document.getElementById('viewTo').innerText = 'Dear ' + receivedData.to;
+                document.getElementById('viewMsg').innerText = receivedData.msg;
+                document.getElementById('viewFrom').innerText = '—— ' + receivedData.from;
+                switchToView();
             } else {
-                // 如果没有数据（直接打开），直接进编辑模式
-                showEdit();
+                switchToEdit();
             }
         };
 
-        document.getElementById('closeCard').onclick = () => {
-            document.getElementById('cardOverlay').classList.remove('active');
-            giftBox.classList.remove('hidden');
-        };
+        document.getElementById('closeBtn').onclick = closeAll;
 
-        // --- 圣诞树渲染代码 (Final Lush Edition) ---
+        // --- 3. 圣诞树引擎 (形状调整为标准圆锥) ---
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let width, height, treeParticles = [], snowParticles = [], stars = [], trails = [], angleY = 0, time = 0;
         const isMobile = window.innerWidth < 768;
 
-        function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
-        function createStars() { for (let i = 0; i < 80; i++) stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2, blink: Math.random() * Math.PI * 2 }); }
-        function createSnow() { for (let i = 0; i < 60; i++) snowParticles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2 + 1, speed: Math.random() * 0.8 + 0.4 }); }
-        function createTree() {
-            const treeHeight = height * 0.6, maxRadius = isMobile ? width * 0.45 : width * 0.22;
-            for (let i = 0; i < (isMobile ? 1000 : 1800); i++) {
-                const hPct = Math.random(), y = (hPct - 0.5) * treeHeight, r = maxRadius * Math.pow(hPct, 1.3), angle = Math.random() * Math.PI * 2;
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initScene();
+        }
+
+        function initScene() {
+            treeParticles = []; stars = []; snowParticles = [];
+            for (let i = 0; i < 80; i++) stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2, blink: Math.random() * 10 });
+            for (let i = 0; i < 60; i++) snowParticles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2 + 1, speed: Math.random() * 0.8 + 0.4 });
+            
+            const treeHeight = height * 0.6;
+            const maxRadius = isMobile ? width * 0.45 : width * 0.22;
+
+            // 树冠：改为标准圆锥 (线性半径)
+            const count = isMobile ? 1200 : 2000;
+            for (let i = 0; i < count; i++) {
+                const hPct = Math.random(); // 0(顶) 到 1(底)
+                const y = (hPct - 0.5) * treeHeight;
+                
+                // 核心修改：改为线性增长，形成标准圆锥
+                const r = maxRadius * hPct; 
+                
+                const angle = Math.random() * Math.PI * 2;
                 let hue, sat, lit, size, blink = false;
-                if (Math.random() > 0.92) { hue = 0; sat = 90; lit = 50; size = 4; blink = true; }
-                else if (Math.random() > 0.84) { hue = 45; sat = 100; lit = 60; size = 3.5; blink = true; }
+                const rand = Math.random();
+                if (rand > 0.92) { hue = 0; sat = 90; lit = 50; size = 4; blink = true; }
+                else if (rand > 0.84) { hue = 45; sat = 100; lit = 60; size = 3.5; blink = true; }
                 else { hue = 140 + Math.random() * 30; sat = 50; lit = 30; size = 2.2; }
                 treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue, sat, lit, size, blink, offset: Math.random() * 10 });
             }
-            treeParticles.push({ x: 0, y: -0.5 * treeHeight - 15, z: 0, type: 'star', size: 18 });
+
+            // 丝带：跟随圆锥形状
+            for (let i = 0; i < 300; i++) {
+                const hPct = i / 300;
+                const y = (hPct - 0.5) * treeHeight;
+                const r = (maxRadius * hPct) + 6;
+                const angle = hPct * Math.PI * 2 * 6;
+                treeParticles.push({ x: Math.cos(angle) * r, y, z: Math.sin(angle) * r, hue: 45, sat: 100, lit: 75, size: 2.8, blink: true, offset: i });
+            }
+
+            // 树干
+            const trunkH = treeHeight * 0.15;
+            const trunkR = maxRadius * 0.12;
+            for (let i = 0; i < 150; i++) {
+                const hp = Math.random();
+                const y = (0.5 * treeHeight) + (hp * trunkH);
+                const angle = Math.random() * Math.PI * 2;
+                treeParticles.push({ x: Math.cos(angle) * trunkR, y, z: Math.sin(angle) * trunkR, hue: 25, sat: 40, lit: 15, size: 2 });
+            }
+
+            // 树顶五角星
+            treeParticles.push({ x: 0, y: -0.5 * treeHeight - 18, z: 0, type: 'star', size: 18 });
         }
+
+        class Trail {
+            constructor(x, y) { this.x = x; this.y = y; this.alpha = 1.0; this.size = Math.random() * 4 + 2; }
+            draw() {
+                ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                this.alpha -= 0.03; this.size *= 0.95;
+            }
+        }
+
         function animate() {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height);
             time++; angleY += 0.005;
             stars.forEach(s => { const b = Math.abs(Math.sin(time * 0.02 + s.blink)); ctx.fillStyle = `rgba(255,255,255,${b * 0.4})`; ctx.fillRect(s.x, s.y, s.size, s.size); });
             snowParticles.forEach(s => { s.y += s.speed; if (s.y > height) s.y = -10; ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill(); });
+            
             const cosA = Math.cos(angleY), sinA = Math.sin(angleY);
-            treeParticles.forEach(p => { p.dz = p.z * cosA + p.x * sinA; });
+            treeParticles.forEach(p => p.dz = p.z * cosA + p.x * sinA);
             treeParticles.sort((a, b) => a.dz - b.dz);
+            
             treeParticles.forEach(p => {
                 const fov = 650, camZ = 550, scale = fov / (fov + p.dz + camZ), x2d = (p.x * cosA - p.z * sinA) * scale + width / 2, y2d = p.y * scale + height / 2;
                 if (p.type === 'star') {
+                    const glow = Math.sin(time * 0.1) * 10 + 20;
+                    ctx.fillStyle = `rgba(255, 215, 0, ${Math.sin(time*0.1)*0.3+0.4})`;
+                    ctx.beginPath(); ctx.arc(x2d, y2d, glow * scale, 0, Math.PI*2); ctx.fill();
                     ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(x2d, y2d, p.size * scale, 0, Math.PI*2); ctx.fill();
                 } else {
                     let lit = p.lit; if (p.blink) lit += Math.sin(time * 0.1 + p.offset) * 15;
-                    ctx.fillStyle = `hsla(${p.hue}, ${p.sat}%, ${lit}%, 0.8)`; ctx.beginPath(); ctx.arc(x2d, y2d, p.size * scale, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = `hsla(${p.hue}, ${p.sat}%, ${lit}%, 0.85)`; ctx.beginPath(); ctx.arc(x2d, y2d, p.size * scale, 0, Math.PI * 2); ctx.fill();
                 }
             });
+            trails.forEach((t, i) => { t.draw(); if (t.alpha <= 0) trails.splice(i, 1); });
             requestAnimationFrame(animate);
         }
 
+        const startTrail = (e) => {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            trails.push(new Trail(x, y));
+        };
+        canvas.addEventListener('touchstart', startTrail);
+        canvas.addEventListener('touchmove', startTrail);
+        canvas.addEventListener('mousedown', () => canvas.addEventListener('mousemove', startTrail));
+        window.addEventListener('mouseup', () => canvas.removeEventListener('mousemove', startTrail));
+
         window.onresize = resize;
-        resize(); createStars(); createSnow(); createTree(); animate();
+        resize(); animate();
     </script>
 </body>
 </html>
